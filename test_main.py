@@ -60,14 +60,6 @@ def test_data_splitter_function(random_trainer):
     assert len(x_test) > 0
     # Add more assertions as needed
 
-# def test_get_Xval_score_function(random_trainer):
-#     model = LGBMRegressor(random_state=42)
-#     x_train, x_test, y_train, y_test = random_trainer.data_splitter()
-#     random_trainer.get_Xval_score(model, x_train, y_train, n_splits=5)
-
-    # Perform assertions (based on printed output, if applicable)
-    # Add more assertions as needed
-
 def test_tune_function(random_trainer):
     random_trainer.features = random_trainer.select_features(n=7)
     x_train, x_test, y_train, y_test = random_trainer.data_splitter()
@@ -84,16 +76,17 @@ def test_train_and_evaluate_functions(random_trainer):
     random_trainer.features = random_trainer.select_features(n=7)
     x_train, x_test, y_train, y_test = random_trainer.data_splitter()
     model = LGBMRegressor(random_state=42)
-    x_train, x_test, y_train, y_test = random_trainer.data_splitter()
-    param_grid = {'n_estimators': [50, 100, 200]}
+    param_grid = {'n_estimators': [50, 100, 150]}
     best_model = random_trainer.tune(param_grid, model, x_train, y_train)
-    trained_model = random_trainer.train(best_model, x_train, y_train)
+    trained_model, MAE_scores = random_trainer.train(best_model, x_train, y_train)
     smape, mape, mae = random_trainer.evaluate(trained_model, x_test, y_test)
 
     # Perform assertions
     assert mape is not None
     assert smape is not None
     assert mae is not None
+    assert MAE_scores is not None
+
     # Add more assertions as needed
 
 def test_get_MAPE_function():
@@ -119,10 +112,8 @@ def test_get_SMAPE_function():
 @pytest.fixture()
 def random_anomaly_detector(random_data_processor):
     random_data_processor.df1 = random_data_processor.clean(random_data_processor.df1)
-    random_data_processor.df2 = random_data_processor.clean(random_data_processor.df2)
     random_data_processor.df1 = random_data_processor.add_features(random_data_processor.df1)
-    random_data_processor.df2 = random_data_processor.add_features(random_data_processor.df2)
-    return AnomalyDetector(random_data_processor.aggregate())
+    return AnomalyDetector(random_data_processor.df1)
 
 def test_fit_model_function(random_anomaly_detector):
     random_anomaly_detector.fit_model()

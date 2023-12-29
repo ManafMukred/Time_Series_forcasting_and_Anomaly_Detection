@@ -40,19 +40,21 @@ if __name__ == "__main__":
     # fine tune via GridSearch
     MODEL = trainer.tune(PARAM_GRID, MODEL, x_train, y_train)
     # Train and evaluate the model
-    lgb_model = trainer.train(MODEL, x_train, y_train)
+    lgb_model, MAE_scores = trainer.train(MODEL, x_train, y_train)
     sampe, mape, mae = trainer.evaluate(lgb_model, x_test, y_test)
-    
-    print("MAPE:", mape)
-    print("SMAPE:", sampe)
-    print("MAE:", mae)
+    print('-' * 50)
+    print('cross validated MAE: %.3f ' % (MAE_scores.mean()))
+    print('-' * 50)
+    print("Test set MAPE:", mape)
+    print("Test set SMAPE:", sampe)
+    print("Test set MAE:", mae)
     
 
     # Load your combined_df data here (assuming it's a DataFrame)
     # combined_df = ...
 
     # Instantiate AnomalyDetector
-    anomaly_detector = AnomalyDetector(combined_data)
+    anomaly_detector = AnomalyDetector(Turbine.df1)
     # Fit the Isolation Forest model
     anomaly_detector.fit_model()
     # Detect anomalies

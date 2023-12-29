@@ -5,7 +5,7 @@ from sklearn.manifold import TSNE
 class AnomalyDetector:
     def __init__(self, data, target = 'Leistung'):
         self.model = IsolationForest(random_state=0, contamination=0.15)
-        self.data = data
+        self.data = data.set_index('Dat/Zeit')
         self.target = target
         
     def fit_model(self):

@@ -38,13 +38,7 @@ class Trainer():
 
         else:
             return train_test_split(X, Y, test_size=0.2, shuffle=False)    
-
-    def get_Xval_score(self, model, X, Y, n_splits=10):
-        tscv = TimeSeriesSplit(n_splits=n_splits)
-        scores = cross_val_score(model, X, Y, scoring=make_scorer(mean_absolute_error), cv=tscv, n_jobs=-1)
-        scores = np.absolute(scores)
-        print('MAE: %.3f standard deviation: %.3f' % (scores.mean(), scores.std()))
-
+ 
     def tune(self, param, model, x_train, y_train):
         # Create a time series split cross-validator
         tscv = TimeSeriesSplit(n_splits=5)
@@ -69,8 +63,11 @@ class Trainer():
         return grid_search.best_estimator_
 
     def train(self, model, x_train, y_train):
+        tscv = TimeSeriesSplit(n_splits=5)
+        scores = cross_val_score(model, x_train, y_train, scoring=make_scorer(mean_absolute_error), cv=tscv, n_jobs=-1)
+        scores = np.absolute(scores)
         model.fit(x_train, y_train)
-        return model
+        return model, scores
 
     def evaluate(self, model, x_test, y_test):
         y_pred = model.predict(x_test)
