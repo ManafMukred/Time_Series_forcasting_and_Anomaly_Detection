@@ -3,23 +3,46 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 
 class AnomalyDetector:
+    """
+    A class for anomaly detection
+    """
     def __init__(self, data, target = 'Leistung'):
-        self.model = IsolationForest(random_state=0, contamination=0.15)
+        """
+        Initialize AnomalyDetector instance
+
+        Creates class variable, datetime index, and model class instance
+        """
+        self.model = IsolationForest(random_state=0)
         self.data = data.set_index('Dat/Zeit')
         self.target = target
         
     def fit_model(self):
-        """Fit the Isolation Forest model to the specified data."""
+        """
+        Fit the Isolation Forest model to the specified data
+
+        Returns:
+        Fit model
+        """
         self.model.fit(self.data)
 
     def detect_anomalies(self):
-        """Detect anomalies in the data using the Isolation Forest model."""
+        """
+        Detect anomalies in the data using the Isolation Forest model
+                
+        Returns:
+        Updated dataframe with anomaly column 
+        """
         # self.data['score'] = self.model.decision_function(self.data)
         self.data['anomaly'] = self.model.predict(self.data)
         return self.data
 
     def visualize_anomalies(self, until_date = '' ):
-        """Visualize anomalies in the data."""
+        """
+        Visualize anomalies in the data
+        
+        Returns:
+        None
+        """
              
         if not until_date:
             until_date = self.data.index.strftime('%Y-%m-%d')[-1]
@@ -41,6 +64,12 @@ class AnomalyDetector:
         plt.show()
 
     def visualize_tsne(self):
+        """
+        Visualize data after dimnesionality reduction
+        
+        Returns:
+        None
+        """
         # Apply t-SNE for dimensionality reduction
         tsne = TSNE(n_components=2, random_state=0)
         tsne_result = tsne.fit_transform(self.data[self.data.columns.difference(['anomaly', 'score'])])

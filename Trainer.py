@@ -5,14 +5,30 @@ from sklearn.feature_selection import SelectKBest, mutual_info_regression
 from sklearn.metrics import make_scorer, mean_absolute_error, mean_absolute_percentage_error
 
 class Trainer():
+    """
+    A class for training process and evaluation
+    """
 
     def __init__(self, data):
-#         super().__init__(parent.df1, parent.df2)
+        """
+        Initialize the instance of Trainer
+
+        Creates class variables and retrieves updated data from DataProcessor class 
+        """
         self.data = data
         self.features = []
         self.target = 'Leistung'
 
     def select_features(self, n= 10):
+        """
+        Select the n best features 
+
+        Parameters:
+        - n (int): the number of features to select
+
+        Returns:
+        A list with best feature names
+        """
         best_features=[]
         X = self.data[self.data.columns.difference([self.target, 'Dat/Zeit'])]
         Y = self.data[self.target]
@@ -27,6 +43,16 @@ class Trainer():
         return best_features  
     
     def data_splitter(self, z_score=True, pct=0.2):
+        """
+        Split and standardize data 
+
+        Parameters:
+        - pct (float): percentage of test set
+        - z_score (bool): make z-score or not
+
+        Returns:
+        train_test_split function with four tuples: x_train, x_test, y_train, y_test 
+        """
         X = self.data[self.features]
         Y = self.data[self.target]
         if  z_score:
@@ -40,6 +66,18 @@ class Trainer():
             return train_test_split(X, Y, test_size=0.2, shuffle=False)    
  
     def tune(self, param, model, x_train, y_train):
+        """
+        Search for best model parameters
+
+        Parameters:
+        - param (dict): dictionary with parameters and their values to search
+        - model : the model class object
+        - x_train : train set of feature columns
+        - y_train : train set of target column
+
+        Returns:
+        Model object with best parameters
+        """
         # Create a time series split cross-validator
         tscv = TimeSeriesSplit(n_splits=5)
 
@@ -63,6 +101,18 @@ class Trainer():
         return grid_search.best_estimator_
 
     def train(self, model, x_train, y_train):
+        """
+        Train the data
+
+        Parameters:
+        - model : the model class object
+        - x_train : train set of feature columns
+        - y_train : train set of target column
+
+        Returns:
+        - Trained model
+        - cross validated score on training set (mean_absolute_error)
+        """
         tscv = TimeSeriesSplit(n_splits=5)
         scores = cross_val_score(model, x_train, y_train, scoring=make_scorer(mean_absolute_error), cv=tscv, n_jobs=-1)
         scores = np.absolute(scores)
@@ -70,6 +120,19 @@ class Trainer():
         return model, scores
 
     def evaluate(self, model, x_test, y_test):
+        """
+        Evaluate the data
+
+        Parameters:
+        - model : the model class object
+        - x_test : test set of feature columns
+        - y_test : test set of target column
+
+        Returns:
+        - Symmetric mean absolute percentage error (SMAPE)
+        - Mean absolute percentage error (MAPE)
+        - Mean absolute error (MAE)
+        """
         y_pred = model.predict(x_test)
         mape = get_MAPE(y_test, y_pred)
         smape = get_SMAPE(y_test, y_pred)
@@ -78,9 +141,21 @@ class Trainer():
 
 
 def get_MAPE(true, pred):
+    """
+    Calculate  Mean absolute percentage error (SMAPE)
+
+    Returns:
+    MAPE score
+    """
     non_zero_indices = true.values != 0
     true, pred = true[non_zero_indices], pred[non_zero_indices]
     return mean_absolute_percentage_error(true, pred)
 
 def get_SMAPE(true, pred):
+    """
+    Calculate Symmetric mean absolute percentage error (MAPE)
+
+    Returns:
+    SMAPE score
+    """
     return 2 * np.mean(np.abs(true - pred) / (np.abs(true) + np.abs(pred)))
